@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS List</title>
+</head>
+<body>
+    <h1>SMS Messages</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Sender</th>
+                <th>Receiver</th>
+                <th>Body</th>
+                <th>Timestamp</th>
+                <th>Type</th>
+                <th>Delivery</th>
+                <th>Read</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sms in sms_messages %}
+            <tr>
+                <td>{{ sms.sender }}</td>
+                <td>{{ sms.receiver }}</td>
+                <td>{{ sms.body }}</td>
+                <td>{{ sms.timestamp }}</td>
+                <td>{{ sms.message_type }}</td>
+                <td>{{ sms.delivery }}</td>
+                <td>{{ sms.read }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
