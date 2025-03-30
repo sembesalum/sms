@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -14,13 +14,13 @@ def sms_webhook(request):
 
             for sms in sms_list:
                 timestamp_str = sms.get('timestamp')
-                
+
                 # Ensure timestamp is converted to datetime format
                 if timestamp_str:
                     try:
-                        timestamp = datetime.fromisoformat(timestamp_str)
+                        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
                     except ValueError:
-                        return JsonResponse({'status': 'error', 'message': 'Invalid timestamp format'}, status=400)
+                        return JsonResponse({'status': 'error', 'message': 'Invalid timestamp format. Expected format: YYYY-MM-DDTHH:MM:SS'}, status=400)
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Timestamp missing'}, status=400)
 
