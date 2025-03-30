@@ -13,14 +13,19 @@ def sms_webhook(request):
             sms_list = data.get('sms', [])
 
             for sms in sms_list:
-                timestamp_str = sms.get('timestamp')
+                timestamp_value = sms.get('timestamp')
 
                 # Ensure timestamp is converted to datetime format
-                if timestamp_str:
-                    try:
-                        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S")
-                    except ValueError:
-                        return JsonResponse({'status': 'error', 'message': 'Invalid timestamp format. Expected format: YYYY-MM-DDTHH:MM:SS'}, status=400)
+                if timestamp_value:
+                    if isinstance(timestamp_value, int):  # UNIX timestamp
+                        timestamp = datetime.fromtimestamp(timestamp_value)
+                    elif isinstance(timestamp_value, str):  # ISO formatted string
+                        try:
+                            timestamp = datetime.strptime(timestamp_value, "%Y-%m-%dT%H:%M:%S")
+                        except ValueError:
+                            return JsonResponse({'status': 'error', 'message': 'Invalid timestamp format. Expected format: YYYY-MM-DDTHH:MM:SS'}, status=400)
+                    else:
+                        return JsonResponse({'status': 'error', 'message': 'Invalid timestamp format'}, status=400)
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Timestamp missing'}, status=400)
 
