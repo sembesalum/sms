@@ -17,7 +17,9 @@ def sms_webhook(request):
 
                 # Ensure timestamp is converted to datetime format
                 if timestamp_value:
-                    if isinstance(timestamp_value, int):  # UNIX timestamp
+                    if isinstance(timestamp_value, int):  # UNIX timestamp (seconds or milliseconds)
+                        if timestamp_value > 9999999999:  # Likely in milliseconds
+                            timestamp_value = timestamp_value / 1000  # Convert to seconds
                         timestamp = datetime.fromtimestamp(timestamp_value)
                     elif isinstance(timestamp_value, str):  # ISO formatted string
                         try:
