@@ -13,32 +13,40 @@ def sms_webhook(request):
             sms_list = data.get('sms', [])
 
             for sms in sms_list:
+                sender = sms.get('sender')
+                receiver = sms.get('receiver')  # Ensure receiver exists
+                body = sms.get('body')
                 timestamp_value = sms.get('timestamp')
 
-                # Ensure timestamp is converted to datetime format
+                # Validate required fields
+                if not sender or not receiver:
+                    return JsonResponse({'status': 'error', 'message': 'Sender and receiver are required'}, status=400)
+
+                # Ensure timestamp is valid
                 if timestamp_value:
-                    if isinstance(timestamp_value, int):  # UNIX timestamp (seconds or milliseconds)
-                        if timestamp_value > 9999999999:  # Likely in milliseconds
-                            timestamp_value = timestamp_value / 1000  # Convert to seconds
+                    if isinstance(timestamp_value, int):  # UNIX timestamp (milliseconds or seconds)
+                        if timestamp_value > 9999999999:  # Convert milliseconds to seconds
+                            timestamp_value = timestamp_value / 1000
                         timestamp = datetime.fromtimestamp(timestamp_value)
                     elif isinstance(timestamp_value, str):  # ISO formatted string
                         try:
                             timestamp = datetime.strptime(timestamp_value, "%Y-%m-%dT%H:%M:%S")
                         except ValueError:
-                            return JsonResponse({'status': 'error', 'message': 'Invalid timestamp format. Expected format: YYYY-MM-DDTHH:MM:SS'}, status=400)
+                            return JsonResponse({'status': 'error', 'message': 'Invalid timestamp format. Expected YYYY-MM-DDTHH:MM:SS'}, status=400)
                     else:
                         return JsonResponse({'status': 'error', 'message': 'Invalid timestamp format'}, status=400)
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Timestamp missing'}, status=400)
 
+                # Save message to database
                 SMSMessage.objects.create(
-                    sender=sms.get('sender'),
-                    receiver=sms.get('receiver'),
-                    body=sms.get('body'),
+                    sender=sender,
+                    receiver=receiver,
+                    body=body,
                     timestamp=timestamp,
-                    message_type=sms.get('type'),
-                    delivery=sms.get('delivery'),
-                    read=sms.get('read', False),  # Default to False if missing
+                    message_type=sms.get('type', 'sms'),  # Default to 'sms' if missing
+                    delivery=sms.get('delivery', ''),
+                    read=sms.get('read', False),
                 )
 
             return JsonResponse({'status': 'success'}, status=200)
