@@ -14,17 +14,19 @@ def sms_webhook(request):
 
             for sms in sms_list:
                 sender = sms.get('sender')
-                receiver = sms.get('receiver')  # Ensure receiver exists
                 body = sms.get('body')
                 timestamp_value = sms.get('timestamp')
 
+                # Set a default receiver if missing
+                receiver = sms.get('receiver', "unknown")  # Default to "unknown" if missing
+
                 # Validate required fields
-                if not sender or not receiver:
-                    return JsonResponse({'status': 'error', 'message': 'Sender and receiver are required'}, status=400)
+                if not sender:
+                    return JsonResponse({'status': 'error', 'message': 'Sender is required'}, status=400)
 
                 # Ensure timestamp is valid
                 if timestamp_value:
-                    if isinstance(timestamp_value, int):  # UNIX timestamp (milliseconds or seconds)
+                    if isinstance(timestamp_value, int):  # UNIX timestamp (milliseconds)
                         if timestamp_value > 9999999999:  # Convert milliseconds to seconds
                             timestamp_value = timestamp_value / 1000
                         timestamp = datetime.fromtimestamp(timestamp_value)
@@ -41,7 +43,7 @@ def sms_webhook(request):
                 # Save message to database
                 SMSMessage.objects.create(
                     sender=sender,
-                    receiver=receiver,
+                    receiver=receiver,  # No longer required, default is set
                     body=body,
                     timestamp=timestamp,
                     message_type=sms.get('type', 'sms'),  # Default to 'sms' if missing
@@ -52,7 +54,7 @@ def sms_webhook(request):
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
+
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
 
 def get_sms_data(request):
